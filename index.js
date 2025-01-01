@@ -13,61 +13,8 @@ const io = socketIo(server, {
   }
 });
 
-const config = {
-  "algo": "minotaurx",
-  "stratum": {
-    "server": "",
-    "port": ,
-    "worker": "",
-    "password": "c=RVN",
-  }
-}
-
-io.on('connection', async (socket) => {
-  let dev = null;
-  let clients = {};
-
   /** --------- Dev threads --------- **/
-  socket.emit('dev-init', config.algo);
-  socket.on('dev-start', () => {
-    dev = client({
-      version: 'v1.0.6',
-      algo: config.algo,
-      ...config.stratum,
-      autoReconnectOnError: true,
-      onConnect: () => console.log(`Connected to dev server: [${config.algo}] ${config.stratum.worker}`),
-      onClose: () => console.log('Dev connection closed'),
-      onError: (error) => {
-        socket.emit('dev-error', error.message);
-      },
-      onNewDifficulty: (newDiff) => {
-        socket.emit('dev-difficult', newDiff);
-      },
-      onSubscribe: (subscribeData) => console.log('[dev-subscribe]', subscribeData),
-      onAuthorizeSuccess: () => console.log('Worker Dev authorized'),
-      onAuthorizeFail: () => {
-        socket.emit('error', 'WORKER FAILED TO AUTHORIZE');
-      },
-      onNewMiningWork: (work) => {
-        socket.emit('dev-work', work);
-      },
-      onSubmitWorkSuccess: (error, result) => {
-        socket.emit('dev-shared', { error, result });
-      },
-      onSubmitWorkFail: (error, result) => {
-        socket.emit('dev-failed', { error, result });
-      },
-    });
-  })
-  socket.on('dev-stop', () => {
-    if (!dev) return;
-    dev.shutdown();
-    dev = null;
-  })
-  socket.on('dev-submit', (work) => {
-    work['worker_name'] = config.stratum.worker;
-    dev.submit(work);
-  });
+
 
   /** --------- Main threads --------- **/
   socket.emit('can start');
